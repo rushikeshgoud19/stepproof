@@ -5,3 +5,8 @@ __pycache__/
 dist/
 build/
 .venv/
+
+# Demo runs shell commands with a deliberately broken redirect; on Windows that
+# can drop odd zero-byte files in the cwd. Never commit repo-root junk.
+/*.txt
+/Users*
