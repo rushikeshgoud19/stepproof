@@ -6,7 +6,16 @@ dist/
 build/
 .venv/
 
-# Demo runs shell commands with a deliberately broken redirect; on Windows that
-# can drop odd zero-byte files in the cwd. Never commit repo-root junk.
-/*.txt
-/Users*
+# The demo and the shell tests deliberately run broken/real redirects, which drop
+# odd zero-byte files into the cwd on Windows. Ignore EVERYTHING at the repo root
+# except the handful of files that belong there, so junk can never be swept in by
+# `git add -A` again (it has happened three times).
+/*
+!/.gitignore
+!/LICENSE
+!/README.md
+!/pyproject.toml
+!/agent_seal/
+!/tests/
+!/examples/
+!/docs/
