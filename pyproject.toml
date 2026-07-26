@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agent-seal"
+version = "0.1.0"
+description = "Prove what your agent actually did — step-level verification and a tamper-evident audit trail."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Rushikesh Goud" }]
+keywords = ["agents", "llm", "verification", "audit", "observability", "evaluation"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+]
+# The core is deliberately dependency-free: it must be droppable into any agent stack,
+# and an audit tool that drags in a framework is an audit tool nobody installs.
+dependencies = []
+
+[project.optional-dependencies]
+langchain = ["langchain-core>=0.3", "langchain-openai>=0.2"]
+
+[project.urls]
+Homepage = "https://github.com/rushikeshgoud19/agent-seal"
+
+[tool.hatch.build.targets.wheel]
+packages = ["agent_seal"]
