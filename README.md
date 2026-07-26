@@ -91,18 +91,69 @@ them and therefore missed the exact bug it was written to catch.
 **Actor and authorization on every seal** — audit frameworks want to know *who authorized
 this*, not just what happened.
 
+## Seal a whole agent, not one function
+
+```python
+from agent_seal.adapters.langchain import seal_tools
+
+tools = seal_tools(tools)                                        # record everything
+tools = seal_tools(tools, proves={"run_shell": "file exists at {path}"})   # and verify
+```
+
+`seal_tools(tools)` on its own **does not mark anything verified**. It records what was
+called, with which arguments, and what came back — and leaves the verdict blank, reported
+as `never checked`. Calling an unchecked action "verified" because nothing threw is the
+exact mistake this library is about.
+
+That is also the honest way to adopt it: point it at an agent you already have, run your
+normal workload, then read `report()` to find out how much of what it does is actually
+confirmed. Add `proves=` for the actions that matter.
+
+## Evidence clauses
+
+```
+"file exists at {path}"
+"no file at {path}"                                  # deletions are claims too
+"file {path} contains {text}"
+"http 200 from {url}"                                # ... containing {text}
+"sqlite {db} has row in {table} where {clause}"      # catches "task scheduled!" with no row
+```
+
+`{...}` is filled from the wrapped function's own arguments, so the contract is written once
+at the definition. Referencing an argument the function doesn't take raises immediately
+rather than quietly verifying nothing.
+
+Anything the grammar can't express takes a callable instead — an unreadable clause is worse
+than a function:
+
+```python
+@verified(verifier=lambda **kw: (queue.depth() == 0, f"queue depth {queue.depth()}"))
+def drain_queue(): ...
+```
+
+A verifier that returns prose instead of an observation is rejected by the narration
+detector, so a lazy checker can't rubber-stamp itself.
+
 ## Install
 
 ```bash
 pip install -e .
-python tests/test_agent_seal.py     # 27 checks, no pytest needed
+python tests/test_agent_seal.py                  # 27 checks
+python tests/test_collectors_and_adapter.py      # 37 checks
 ```
+
+No pytest, and the core has **no dependencies at all** — a verification library that is
+annoying to verify, or that drags a framework into your stack, is a poor advertisement for
+itself.
 
 ## Status
 
-Early. The core is built and tested: decorator, hash-chained ledger, tamper detection,
-narration detector, audit report. Framework adapters (LangChain, OpenAI Agents SDK, CrewAI)
-are next — the demo uses LangChain directly today.
+Early but real. Built and tested: the decorator, hash-chained ledger with tamper detection,
+narration detector, evidence collectors (file / http / sqlite), the clause grammar, the
+LangChain adapter, and the audit report. 64 checks pass.
+
+Next: OpenAI Agents SDK and CrewAI adapters, richer collectors (process state, cloud APIs),
+and PyPI.
 
 Extracted from a personal AI assistant whose verification layer exists because it once
 reported a task as scheduled that it had never scheduled.

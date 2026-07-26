@@ -11,9 +11,10 @@ from __future__ import annotations
 
 import functools
 import inspect
-import os
 from typing import Any, Callable
 
+from . import collectors
+from .collectors import file_contains, file_exists
 from .ledger import Ledger, Seal
 from .narration import explain, is_narration
 
@@ -37,46 +38,78 @@ class VerificationError(AssertionError):
     """Raised when an action's claimed effect cannot be confirmed against real state."""
 
 
-# ── Evidence collectors ─────────────────────────────────────────────────────────
-# A collector answers one question about the world and returns (ok, evidence). Evidence is
-# a STRING because it goes in the audit trail for a human to read later.
+# ── The `proves=` clause grammar ────────────────────────────────────────────────
+# A tiny English-ish DSL, kept deliberately small. Anything it cannot express is a sign you
+# should pass verifier=<callable> instead — an unreadable clause is worse than a function.
+#
+# Each entry: (match predicate, parser -> a zero-arg collector call).
 
-def file_exists(path: str) -> tuple[bool, str]:
-    if not os.path.exists(path):
-        return False, f"no such file: {path}"
-    return True, f"file exists: {path} ({os.path.getsize(path)} bytes)"
+def _p_file_exists(spec: str):
+    return lambda: collectors.file_exists(spec[len("file exists at "):].strip())
 
 
-def file_contains(path: str, needle: str) -> tuple[bool, str]:
-    if not os.path.exists(path):
-        return False, f"no such file: {path}"
-    body = open(path, encoding="utf-8", errors="replace").read()
-    if needle not in body:
-        return False, f"file exists but does not contain {needle!r}; output: {body[:120]!r}"
-    return True, f"file contains {needle!r} ({os.path.getsize(path)} bytes)"
+def _p_file_absent(spec: str):
+    return lambda: collectors.file_absent(spec[len("no file at "):].strip())
+
+
+def _p_file_contains(spec: str):
+    target, needle = spec[len("file "):].split(" contains ", 1)
+    return lambda: collectors.file_contains(target.strip(), needle.strip())
+
+
+def _p_http(spec: str):
+    rest = spec[len("http 200 from "):].strip()
+    if " containing " in rest:
+        url, needle = rest.split(" containing ", 1)
+        return lambda: collectors.http_ok(url.strip(), contains=needle.strip())
+    return lambda: collectors.http_ok(rest)
+
+
+def _p_sqlite(spec: str):
+    # "sqlite <db> has row in <table> where <clause>"
+    rest = spec[len("sqlite "):]
+    db, rest = rest.split(" has row in ", 1)
+    if " where " in rest:
+        table, where = rest.split(" where ", 1)
+    else:
+        table, where = rest, "1=1"
+    return lambda: collectors.sqlite_row_exists(db.strip(), table.strip(), where.strip())
+
+
+_CLAUSES = [
+    (lambda s: s.startswith("file exists at "), _p_file_exists),
+    (lambda s: s.startswith("no file at "), _p_file_absent),
+    (lambda s: s.startswith("file ") and " contains " in s, _p_file_contains),
+    (lambda s: s.startswith("http 200 from "), _p_http),
+    (lambda s: s.startswith("sqlite ") and " has row in " in s, _p_sqlite),
+]
+
+_CLAUSE_HELP = """supported clauses:
+    "file exists at {path}"
+    "no file at {path}"
+    "file {path} contains {text}"
+    "http 200 from {url}"                     (optionally: ... containing {text})
+    "sqlite {db} has row in {table} where {clause}"
+or pass verifier=<callable> returning (ok, evidence)."""
 
 
 def _resolve(proves: str, bound: dict) -> tuple[Callable[[], tuple[bool, str]], str]:
     """Turn a `proves=` string into a collector call.
 
-    Supported today:
-        "file exists at {path}"
-        "file {path} contains {word}"
     `{...}` fields are filled from the wrapped function's own arguments, so the contract is
     written once at the definition and stays correct for every call.
     """
-    spec = proves.format(**bound)
+    try:
+        spec = proves.format(**bound)
+    except KeyError as e:
+        raise ValueError(
+            f"proves clause {proves!r} references {e} which is not an argument of the "
+            f"decorated function (it has: {sorted(bound)})") from None
     low = spec.lower()
-    if low.startswith("file exists at "):
-        target = spec[len("file exists at "):].strip()
-        return (lambda: file_exists(target)), spec
-    if low.startswith("file ") and " contains " in low:
-        rest = spec[len("file "):]
-        target, needle = rest.split(" contains ", 1)
-        return (lambda: file_contains(target.strip(), needle.strip())), spec
-    raise ValueError(
-        f"unsupported proves clause: {proves!r}. Use 'file exists at {{path}}' or "
-        f"'file {{path}} contains {{word}}', or pass verifier=<callable> instead.")
+    for matches, parse in _CLAUSES:
+        if matches(low):
+            return parse(spec), spec
+    raise ValueError(f"unsupported proves clause: {proves!r}.\n{_CLAUSE_HELP}")
 
 
 def verified(proves: str = None, verifier: Callable[..., tuple] = None,
