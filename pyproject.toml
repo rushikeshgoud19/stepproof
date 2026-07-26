@@ -8,13 +8,17 @@ version = "0.1.0"
 description = "Prove what your agent actually did — step-level verification and a tamper-evident audit trail."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+# PEP 639: an SPDX expression, NOT the legacy free-text field. Emitting `License: MIT`
+# alongside a "License :: OSI Approved" classifier makes PyPI reject the upload with a bare
+# `400 Bad Request` — the two are mutually exclusive under Metadata 2.4, and the error says
+# nothing about which field is at fault. Hence: expression here, classifier deleted below.
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "Rushikesh Goud" }]
 keywords = ["agents", "llm", "verification", "audit", "observability", "evaluation"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Topic :: Software Development :: Testing",
 ]
