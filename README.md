@@ -1,5 +1,10 @@
 # agent-seal
 
+[![tests](https://github.com/rushikeshgoud19/agent-seal/actions/workflows/tests.yml/badge.svg)](https://github.com/rushikeshgoud19/agent-seal/actions/workflows/tests.yml)
+[![python](https://img.shields.io/badge/python-3.10%2B-blue)](https://pypi.org/project/agent-seal/)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![dependencies](https://img.shields.io/badge/dependencies-none-brightgreen)](pyproject.toml)
+
 **Prove what your agent actually did.**
 
 Every observability tool for agents answers *"was the output good?"*. `agent-seal` answers

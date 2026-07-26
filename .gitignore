@@ -19,3 +19,4 @@ build/
 !/tests/
 !/examples/
 !/docs/
+!/.github/
