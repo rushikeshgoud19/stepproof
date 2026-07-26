@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import functools
 import inspect
+import json
 from typing import Any, Callable
 
 from . import collectors
@@ -76,20 +77,58 @@ def _p_sqlite(spec: str):
     return lambda: collectors.sqlite_row_exists(db.strip(), table.strip(), where.strip())
 
 
+def _p_fresh(spec: str):
+    # "file <path> written within <n>s"
+    rest = spec[len("file "):]
+    target, window = rest.split(" written within ", 1)
+    return lambda: collectors.file_newer_than(target.strip(),
+                                              float(window.strip().rstrip("s ")))
+
+
+def _p_dir(spec: str):
+    # "dir <path> has <n> files [matching <pattern>]"
+    rest = spec[len("dir "):]
+    target, rest = rest.split(" has ", 1)
+    count, _, tail = rest.partition(" files")
+    pattern = tail.split(" matching ", 1)[1].strip() if " matching " in tail else "*"
+    return lambda: collectors.dir_has_files(target.strip(), int(count.strip()), pattern)
+
+
+def _p_json(spec: str):
+    # "json <path> has <key> = <value>"  |  "json <path> has <key>"
+    rest = spec[len("json "):]
+    target, keypart = rest.split(" has ", 1)
+    if "=" in keypart:
+        key, _, val = keypart.partition("=")
+        raw = val.strip()
+        try:
+            parsed = json.loads(raw)          # numbers/bools/null keep their type
+        except Exception:
+            parsed = raw.strip('"\'')
+        return lambda: collectors.json_field(target.strip(), key.strip(), parsed)
+    return lambda: collectors.json_field(target.strip(), keypart.strip())
+
+
 _CLAUSES = [
     (lambda s: s.startswith("file exists at "), _p_file_exists),
     (lambda s: s.startswith("no file at "), _p_file_absent),
+    (lambda s: s.startswith("file ") and " written within " in s, _p_fresh),
     (lambda s: s.startswith("file ") and " contains " in s, _p_file_contains),
     (lambda s: s.startswith("http 200 from "), _p_http),
     (lambda s: s.startswith("sqlite ") and " has row in " in s, _p_sqlite),
+    (lambda s: s.startswith("dir ") and " has " in s, _p_dir),
+    (lambda s: s.startswith("json ") and " has " in s, _p_json),
 ]
 
 _CLAUSE_HELP = """supported clauses:
     "file exists at {path}"
-    "no file at {path}"
+    "no file at {path}"                              deletions are claims too
     "file {path} contains {text}"
-    "http 200 from {url}"                     (optionally: ... containing {text})
+    "file {path} written within 300s"                catches a stale file a rerun didn't rewrite
+    "http 200 from {url}"                            (optionally: ... containing {text})
     "sqlite {db} has row in {table} where {clause}"
+    "dir {path} has 3 files matching *.png"
+    "json {path} has server.port = 8001"             (or just: json {path} has server.port)
 or pass verifier=<callable> returning (ok, evidence)."""
 
 

@@ -17,7 +17,8 @@ An output-level judge reads that and passes it. The file does not exist. Nobody 
 the gap is between "the tool returned 0" and "the effect exists", and only step-level
 verification against real state can see it.
 """
-from .collectors import (file_absent, file_contains, file_exists, http_ok,
+from .collectors import (command_output, dir_has_files, file_absent, file_contains,
+                         file_exists, file_newer_than, http_ok, json_field,
                          output_contains, sqlite_row_exists)
 from .ledger import GENESIS, Ledger, Seal
 from .narration import explain, is_narration
@@ -28,6 +29,6 @@ __all__ = [
     "verified", "VerificationError", "report",
     "Ledger", "Seal", "GENESIS", "get_ledger", "set_ledger",
     "is_narration", "explain",
-    "file_exists", "file_absent", "file_contains", "http_ok", "sqlite_row_exists",
-    "output_contains",
+    "file_exists", "file_absent", "file_contains", "file_newer_than", "http_ok",
+    "sqlite_row_exists", "dir_has_files", "json_field", "command_output", "output_contains",
 ]

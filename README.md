@@ -122,9 +122,16 @@ confirmed. Add `proves=` for the actions that matter.
 "file exists at {path}"
 "no file at {path}"                                  # deletions are claims too
 "file {path} contains {text}"
+"file {path} written within 300s"                    # catches the rerun that did nothing
 "http 200 from {url}"                                # ... containing {text}
 "sqlite {db} has row in {table} where {clause}"      # catches "task scheduled!" with no row
+"dir {path} has 3 files matching *.png"
+"json {path} has server.port = 8001"                 # or just: json {path} has server.port
 ```
+
+**Freshness is the one people forget.** `file exists` passes on yesterday's file, so an
+agent that "regenerated the report" while the write silently failed still looks successful.
+Existence is not freshness, and a rerun is exactly where that gap hides.
 
 `{...}` is filled from the wrapped function's own arguments, so the contract is written once
 at the definition. Referencing an argument the function doesn't take raises immediately
@@ -148,6 +155,7 @@ pip install -e .
 python tests/test_agent_seal.py                  # 28 checks — core, ledger, tamper
 python tests/test_collectors_and_adapter.py      # 37 checks — collectors, clause grammar
 python tests/test_adapters.py                    # 42 checks — all three adapters
+python tests/test_collectors_extra.py            # 31 checks — freshness, dir, json, shell
 ```
 
 No pytest, and the core has **no dependencies at all** — a verification library that is
@@ -157,11 +165,12 @@ itself.
 ## Status
 
 Early but real. Built and tested: the decorator, hash-chained ledger with tamper detection,
-narration detector, evidence collectors (file / http / sqlite), the clause grammar, adapters
-for LangChain / OpenAI Agents SDK / CrewAI, and the audit report. **107 checks pass**, and
+narration detector, evidence collectors (file / freshness / dir / json / http / sqlite /
+shell), the clause grammar, adapters for LangChain / OpenAI Agents SDK / CrewAI, and the
+audit report. **138 checks pass**, and
 `import agent_seal` pulls in zero third-party modules.
 
-Next: richer collectors (process state, cloud APIs), and PyPI.
+Next: PyPI, and collectors for whatever people actually verify.
 
 Extracted from a personal AI assistant whose verification layer exists because it once
 reported a task as scheduled that it had never scheduled.

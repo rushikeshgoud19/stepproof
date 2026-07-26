@@ -16,10 +16,19 @@ Collectors are plain functions, so a user adds their own by passing `verifier=` 
 """
 from __future__ import annotations
 
+import fnmatch
+import json
 import os
 import sqlite3
+import subprocess
+import time
 import urllib.error
 import urllib.request
+from typing import Any
+
+# Sentinel: json_field(path, key) with no `expected` asserts the key EXISTS, which is a
+# different question from "equals None" — and None is a legitimate value to assert.
+_ANY = object()
 
 
 def file_exists(path: str) -> tuple[bool, str]:
@@ -78,6 +87,79 @@ def sqlite_row_exists(db: str, table: str, where: str = "1=1") -> tuple[bool, st
     if not n:
         return False, f"no row in {table} where {where} (count 0)"
     return True, f"{n} row(s) in {table} where {where}"
+
+
+def file_newer_than(path: str, seconds: float = 300) -> tuple[bool, str]:
+    """Was this file written RECENTLY — i.e. by the action that just claimed to write it?
+
+    `file_exists` cannot catch the commonest silent failure in a rerun: the agent "regenerated
+    the report", the write failed, and yesterday's file is still sitting there. Existence
+    passes. Freshness does not.
+    """
+    if not os.path.exists(path):
+        return False, f"no such file: {path}"
+    age = time.time() - os.path.getmtime(path)
+    if age > seconds:
+        return False, (f"file is STALE: {path} last modified {age:.0f}s ago, "
+                       f"expected within {seconds:.0f}s — it was not rewritten")
+    return True, f"file written {age:.0f}s ago: {path} ({os.path.getsize(path)} bytes)"
+
+
+def dir_has_files(path: str, min_count: int = 1, pattern: str = "*") -> tuple[bool, str]:
+    """Confirm an action that was supposed to produce N outputs actually produced them."""
+    if not os.path.isdir(path):
+        return False, f"no such directory: {path}"
+    found = fnmatch.filter(os.listdir(path), pattern)
+    if len(found) < min_count:
+        return False, (f"{path} has {len(found)} file(s) matching {pattern!r}, "
+                       f"expected at least {min_count}: {found[:5]}")
+    return True, f"{len(found)} file(s) matching {pattern!r} in {path}: {found[:5]}"
+
+
+def json_field(path: str, key: str, expected: Any = _ANY) -> tuple[bool, str]:
+    """Check a value inside a JSON file. `key` is dotted: "server.port".
+
+    Config edits are the class of action where "it said it did" is least trustworthy and
+    easiest to check — so check it.
+    """
+    if not os.path.exists(path):
+        return False, f"no such file: {path}"
+    try:
+        data = json.load(open(path, encoding="utf-8"))
+    except Exception as e:
+        return False, f"{path} is not readable JSON: {e}"
+
+    cur = data
+    for part in key.split("."):
+        if not isinstance(cur, dict) or part not in cur:
+            return False, f"{path} has no key {key!r} (stopped at {part!r})"
+        cur = cur[part]
+    if expected is _ANY:
+        return True, f"{key} = {cur!r} in {path}"
+    if cur != expected:
+        return False, f"{key} is {cur!r} in {path}, expected {expected!r}"
+    return True, f"{key} = {cur!r} in {path}"
+
+
+def command_output(command: str, contains: str = None,
+                   expect_code: int = 0) -> tuple[bool, str]:
+    """Run a command and check it. Uses a real shell, so redirects behave as written.
+
+    Note the contrast with the demo's broken tool: `shell=True` is exactly what that code
+    was missing. Only pass commands YOUR code composes — never a string built from model
+    output.
+    """
+    try:
+        p = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=30)
+    except Exception as e:
+        return False, f"command failed to run: {e}"
+    out = (p.stdout or "").strip()
+    if p.returncode != expect_code:
+        return False, (f"exit {p.returncode} (expected {expect_code}); "
+                       f"stdout: {out[:100]!r} stderr: {(p.stderr or '').strip()[:100]!r}")
+    if contains and contains not in out:
+        return False, f"exit {p.returncode} but output lacks {contains!r}; output: {out[:120]!r}"
+    return True, f"exit {p.returncode}; output: {out[:120]!r}"
 
 
 def output_contains(result: str, needle: str) -> tuple[bool, str]:
