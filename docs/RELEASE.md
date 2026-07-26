@@ -42,7 +42,9 @@ Verified already on 2026-07-27:
 - installs into a clean venv with **zero** dependencies
 - `@verified` catches a fake success from that clean install
 
-- [ ] Free PyPI account + API token (`pypi.org/manage/account/token`)
+- [ ] Free PyPI account + API token (`pypi.org/manage/account/token`) — **Rushi does this
+      part.** Claude does not create accounts or handle credentials; hand over the token
+      via `twine` on your own machine, or run the upload yourself.
 - [ ] `pip install agent-seal` in a fresh venv, run the smoke snippet from the README
 
 ## 3. The post
