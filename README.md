@@ -94,11 +94,18 @@ this*, not just what happened.
 ## Seal a whole agent, not one function
 
 ```python
-from agent_seal.adapters.langchain import seal_tools
+from agent_seal.adapters.langchain import seal_tools       # or .openai_agents, or .crewai
 
 tools = seal_tools(tools)                                        # record everything
 tools = seal_tools(tools, proves={"run_shell": "file exists at {path}"})   # and verify
 ```
+
+Three adapters, one API: **LangChain**, **OpenAI Agents SDK**, **CrewAI**. Each imports its
+framework lazily, so `import agent_seal` never requires any of them.
+
+In CrewAI especially, pass `actor=` when sealing per agent — crews delegate, the same tool
+gets invoked by several agents, and *who authorized this* is the audit question that becomes
+impossible to answer after the fact.
 
 `seal_tools(tools)` on its own **does not mark anything verified**. It records what was
 called, with which arguments, and what came back — and leaves the verdict blank, reported
@@ -138,8 +145,9 @@ detector, so a lazy checker can't rubber-stamp itself.
 
 ```bash
 pip install -e .
-python tests/test_agent_seal.py                  # 27 checks
-python tests/test_collectors_and_adapter.py      # 37 checks
+python tests/test_agent_seal.py                  # 28 checks — core, ledger, tamper
+python tests/test_collectors_and_adapter.py      # 37 checks — collectors, clause grammar
+python tests/test_adapters.py                    # 42 checks — all three adapters
 ```
 
 No pytest, and the core has **no dependencies at all** — a verification library that is
@@ -149,11 +157,11 @@ itself.
 ## Status
 
 Early but real. Built and tested: the decorator, hash-chained ledger with tamper detection,
-narration detector, evidence collectors (file / http / sqlite), the clause grammar, the
-LangChain adapter, and the audit report. 64 checks pass.
+narration detector, evidence collectors (file / http / sqlite), the clause grammar, adapters
+for LangChain / OpenAI Agents SDK / CrewAI, and the audit report. **107 checks pass**, and
+`import agent_seal` pulls in zero third-party modules.
 
-Next: OpenAI Agents SDK and CrewAI adapters, richer collectors (process state, cloud APIs),
-and PyPI.
+Next: richer collectors (process state, cloud APIs), and PyPI.
 
 Extracted from a personal AI assistant whose verification layer exists because it once
 reported a task as scheduled that it had never scheduled.
