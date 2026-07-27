@@ -1,6 +1,6 @@
 # Your agent passes its evals because your evals only check the output
 
-*Draft — for HN / r/LocalLLaMA / r/MachineLearning / dev.to. Rushi edits before posting.*
+*Draft for HN / r/LocalLLaMA / r/MachineLearning / dev.to. Rushi edits before posting.*
 
 ---
 
@@ -37,14 +37,14 @@ echo DONE > /tmp/report.txt
 `>` was not a redirect. It was passed to `echo` as a literal argument. `echo` printed
 `DONE > /tmp/report.txt` to stdout and exited **0**.
 
-The tool reported `exit 0` — true, that is exactly what happened.
-The agent reported success — true, `exit 0` is what it was handed.
-The judge returned PASS — true, the final answer does say it worked.
+The tool reported `exit 0`. True: that is exactly what happened.
+The agent reported success. True: `exit 0` is what it was handed.
+The judge returned PASS. True: the final answer does say it worked.
 
 Every layer was honest. The file still isn't there.
 
 I didn't invent that bug for a blog post. I shipped it, in my own assistant, and it took me
-weeks to notice — because everything downstream of it looked green.
+weeks to notice, because everything downstream of it looked green.
 
 ## Why output-level evaluation cannot catch this
 
@@ -55,25 +55,34 @@ access to the filesystem, the database, or the API the agent supposedly called. 
 That isn't a weak judge or a bad prompt. A judge that only sees the output cannot detect a
 failure that is invisible in the output. It's structural.
 
-The research already put a number on this: agents evaluated only on final-output quality
-pass **20–40% more test cases** than trajectory-level evaluation reveals. Roughly one in
-three "passing" agents is broken somewhere you aren't looking.
+I wanted to know whether this was my bug or a shape, so I tried to reproduce it somewhere I
+had no hand in. Stock LangChain tool-calling agent, and the tool is not sabotaged. It
+carries the same real bug mine did. Three runs, three times the same result: exit 0, agent
+reports success, judge says PASS, no file. `examples/langchain_fake_success.py` if you want
+to run it yourself.
 
-And the tooling reflects the blind spot. LangSmith, Arize, Braintrust — they trace, they
-score, they let you compare prompts. What none of them do is go and check whether the action
-actually happened.
+I had given myself two weeks to reproduce it. It worked the first evening.
+
+The tracing tools don't cover this, and I don't think that's an oversight. They record what
+happened and let you score it. Going and checking whether the effect exists is a different
+operation, because it needs to know what the action was supposed to prove, and that has to
+come from you, in the code, at the callsite.
 
 ## The uncomfortable version
 
 Everyone can tell you what an agent **said**. Almost nobody can prove what it **did**.
 
-If your agent writes files, sends messages, updates rows, calls webhooks — how many of those
+If your agent writes files, sends messages, updates rows, calls webhooks: how many of those
 effects have you confirmed *since the demo*? Not "did the call return 200". Did the row
 appear.
 
 ## What I built
 
 [`stepproof`](https://github.com/rushikeshgoud19/stepproof). One decorator:
+
+```
+pip install stepproof
+```
 
 ```python
 from stepproof import verified
@@ -92,19 +101,19 @@ Same demo, three verdicts on one run:
 ```
 output-level judge : PASS   <- what output-only evaluation sees
 reality            : FAIL   <- the file does not exist
-stepproof         : FAIL   <- caught at the step, with evidence
+stepproof          : FAIL   <- caught at the step, with evidence
 ```
 
 Three things in it are worth more than the decorator.
 
 **Freshness, not just existence.** `file exists` passes on yesterday's file. So an agent that
 "regenerated the report" while the write silently failed still looks successful. `"file
-{path} written within 300s"` catches the rerun that did nothing — and in my experience that
+{path} written within 300s"` catches the rerun that did nothing, and in my experience that
 is the single commonest silent failure in anything scheduled.
 
 **A narration detector.** Ask an agent to verify something and it will often reply with a
-*plan* — "I'll use the file tool to check…" — or a *refusal* — "I don't have access to
-files" — while holding the exact tool it says it lacks. Neither is evidence.
+*plan* ("I'll use the file tool to check…") or a *refusal* ("I don't have access to
+files"), while holding the exact tool it says it lacks. Neither is evidence.
 
 ```python
 is_narration("I will check if the file exists.")   # True  - a plan
@@ -113,12 +122,12 @@ is_narration("exit 0")                             # False - an observation
 ```
 
 Both directions cost you. Narration accepted as evidence is a false positive. A refusal
-counted as failure is a false negative — I had a job that genuinely completed reported as
+counted as failure is a false negative. I had a job that genuinely completed reported as
 0/2, which is worse than useless, because a checker that cries wolf gets ignored and then
 the real failures hide behind the noise.
 
 One detail I got wrong first: I treated "exists" and "contains" as evidence markers. But
-narration says them too — *"I will check if the file **exists**"* — so the detector sailed
+narration says them too (*"I will check if the file **exists**"*), so the detector sailed
 straight past the exact bug it was written for. The markers have to be things only a real
 observation produces: exit codes, `output:`, `no such file`, timestamps.
 
@@ -142,7 +151,7 @@ tools = seal_tools(tools)     # record every call
 ```
 
 That alone marks nothing as verified. It records what was called, with what arguments, what
-came back — and leaves the verdict blank, counted as `never checked`. Calling an unchecked
+came back, and leaves the verdict blank, counted as `never checked`. Calling an unchecked
 action "verified" because nothing threw is the exact mistake the library exists to catch, and
 I wasn't going to commit it in the adapter.
 
@@ -151,12 +160,14 @@ what your agent reports is actually confirmed. Mine was lower than I expected.
 
 ## Where it's honest about itself
 
-It's early — 0.1.0. Core is dependency-free, 138 tests, adapters for LangChain / OpenAI
+It's early. 0.1.0. Core is dependency-free, 138 checks, adapters for LangChain / OpenAI
 Agents SDK / CrewAI. The clause grammar covers files, freshness, directories, JSON, HTTP and
-sqlite; anything else takes a callable.
+sqlite; anything else takes a callable. CI runs the checks on Python 3.10 through 3.13 on
+Linux and Windows, and one job asserts the core still imports zero third-party modules, so
+if that ever stops being true, the build fails instead of the README quietly going stale.
 
 It cannot verify what you can't observe. If an action has no checkable effect, this gives you
-a trail and an honest "never checked", not a verdict. That's the point — I'd rather it say
+a trail and an honest "never checked", not a verdict. That's the point. I'd rather it say
 *I don't know* than hand you another green check you haven't earned.
 
 It came out of a personal assistant that once told me a task was scheduled when it had never
@@ -166,7 +177,7 @@ accident.
 ---
 
 **Repo:** https://github.com/rushikeshgoud19/stepproof
-**The demo:** `examples/langchain_fake_success.py` — run it and watch the judge pass an
+**The demo:** `examples/langchain_fake_success.py`. Run it and watch the judge pass an
 action that never happened.
 
 If you try it on a real agent, I'd genuinely like to know what percentage came back

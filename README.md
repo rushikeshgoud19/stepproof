@@ -54,9 +54,8 @@ Follow the chain:
 tool returned 0"* and *"the effect the user asked for exists"* — and output-level evaluation
 cannot see that gap **by construction**, not by oversight.
 
-Research puts a number on it: agents evaluated only on final-output quality pass **20–40%
-more test cases** than trajectory-level evaluation reveals. Roughly one in three passing
-agents is broken.
+Reproduced three times out of three against a **stock LangChain agent** with an unsabotaged
+tool: `examples/langchain_fake_success.py`.
 
 ## What you get
 
@@ -156,8 +155,14 @@ detector, so a lazy checker can't rubber-stamp itself.
 ## Install
 
 ```bash
+pip install stepproof
+```
+
+From a clone, to run the checks:
+
+```bash
 pip install -e .
-python tests/test_stepproof.py                  # 28 checks — core, ledger, tamper
+python tests/test_stepproof.py                   # 28 checks — core, ledger, tamper
 python tests/test_collectors_and_adapter.py      # 37 checks — collectors, clause grammar
 python tests/test_adapters.py                    # 42 checks — all three adapters
 python tests/test_collectors_extra.py            # 31 checks — freshness, dir, json, shell
