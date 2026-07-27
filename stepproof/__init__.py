@@ -1,10 +1,10 @@
-"""agent-seal — prove what your agent actually did.
+"""stepproof — prove what your agent actually did.
 
 Every observability tool for agents answers "was the output good?". This one answers
 "did the action actually happen?" — a different axis, and the one audit frameworks are
 converging on.
 
-    from agent_seal import verified
+    from stepproof import verified
 
     @verified(proves="file exists at {path}")
     def write_report(path): ...

@@ -6,7 +6,7 @@ Run it and you get three verdicts on the same run:
 
     output-level judge        PASS   <- what output-only evaluation sees
     reality                   FAIL   <- the file does not exist
-    agent-seal                FAIL   <- caught at the step, with evidence
+    stepproof                FAIL   <- caught at the step, with evidence
 
 Nothing here is rigged. The shell tool carries a bug that has shipped in real code:
 `shlex.split(cmd)` with no shell, so `>` is passed to echo as a literal argument instead
@@ -29,9 +29,9 @@ from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 
-from agent_seal import Ledger, VerificationError, report, set_ledger, verified
+from stepproof import Ledger, VerificationError, report, set_ledger, verified
 
-TARGET = os.path.join(tempfile.gettempdir(), "agent_seal_demo.txt")
+TARGET = os.path.join(tempfile.gettempdir(), "stepproof_demo.txt")
 API_KEY = os.environ.get("MISTRAL_API_KEY", "")
 MODEL = os.environ.get("AGENT_SEAL_MODEL", "mistral-medium-2508")
 BASE_URL = os.environ.get("AGENT_SEAL_BASE_URL", "https://api.mistral.ai/v1")
@@ -111,7 +111,7 @@ def main():
     print(f"  reality            : {'PASS' if really_there else 'FAIL'}"
           f"   <- does {os.path.basename(TARGET)} exist?")
     fails = ledger.failures()
-    print(f"  agent-seal         : {'FAIL' if fails else 'PASS'}"
+    print(f"  stepproof         : {'FAIL' if fails else 'PASS'}"
           f"   <- caught at the step, with evidence")
 
     print("\n" + report(ledger))
@@ -120,7 +120,7 @@ def main():
     print(f"\ntamper check: {detail}")
 
     if judged_pass and not really_there and fails:
-        print("\nThe judge passed an action that never happened. agent-seal did not.")
+        print("\nThe judge passed an action that never happened. stepproof did not.")
     if os.path.exists(TARGET):
         os.remove(TARGET)
 

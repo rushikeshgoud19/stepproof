@@ -30,10 +30,10 @@ jobs:
       # No install step and no dependencies on purpose. If this job ever needs a
       # `pip install`, the core has grown a dependency and the pitch is no longer true.
       - name: Assert the core is dependency-free
-        run: python -c "import agent_seal, sys; assert not [m for m in sys.modules if m.split('.')[0] in ('langchain','openai','crewai','pydantic','requests')], 'core pulled in a third-party module'; print('core is dependency-free, version', agent_seal.__version__)"
+        run: python -c "import stepproof, sys; assert not [m for m in sys.modules if m.split('.')[0] in ('langchain','openai','crewai','pydantic','requests')], 'core pulled in a third-party module'; print('core is dependency-free, version', stepproof.__version__)"
 
       - name: Core, ledger and tamper detection
-        run: python tests/test_agent_seal.py
+        run: python tests/test_stepproof.py
 
       - name: Collectors and clause grammar
         run: python tests/test_collectors_and_adapter.py
@@ -67,7 +67,7 @@ jobs:
           python -m venv /tmp/fresh
           /tmp/fresh/bin/python -m pip install --quiet dist/*.whl
           /tmp/fresh/bin/python -c "
-          from agent_seal import verified, VerificationError
+          from stepproof import verified, VerificationError
           import tempfile, os
           target = os.path.join(tempfile.mkdtemp(), 'never_written.txt')
 

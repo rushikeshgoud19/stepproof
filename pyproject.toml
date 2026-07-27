@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "agent-seal"
+name = "stepproof"
 version = "0.1.0"
 description = "Prove what your agent actually did — step-level verification and a tamper-evident audit trail."
 readme = "README.md"
@@ -30,7 +30,7 @@ dependencies = []
 langchain = ["langchain-core>=0.3", "langchain-openai>=0.2"]
 
 [project.urls]
-Homepage = "https://github.com/rushikeshgoud19/agent-seal"
+Homepage = "https://github.com/rushikeshgoud19/stepproof"
 
 [tool.hatch.build.targets.wheel]
-packages = ["agent_seal"]
+packages = ["stepproof"]

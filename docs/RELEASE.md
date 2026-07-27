@@ -4,7 +4,7 @@ Everything here is free. No paid account is needed at any step.
 
 ## Decide first (blocks step 2 only)
 
-- [ ] **Name.** `agent-seal` is free on PyPI and GitHub. Note `agentseal` v0.10.0 exists —
+- [ ] **Name.** `stepproof` is free on PyPI and GitHub. Note `agentseal` v0.10.0 exists —
       a *different* package (AI-agent security scanning), different normalized name, so both
       can coexist. The cost is confusion and search leakage in the same niche.
       Renaming is cheap until the moment we publish. Available alternatives checked
@@ -16,8 +16,8 @@ Stars are the Stage-2 kill metric and they only exist here. The post must point 
 people can star.
 
 ```bash
-cd ~/OneDrive/Desktop/agent-seal
-gh repo create agent-seal --public --source=. --remote=origin \
+cd ~/OneDrive/Desktop/stepproof
+gh repo create stepproof --public --source=. --remote=origin \
   --description "Prove what your agent actually did. Step-level verification + a tamper-evident audit trail."
 git push -u origin master
 ```
@@ -33,7 +33,7 @@ git push -u origin master
 Do this **after** the name is final: a version number can never be reused, and yanking is messy.
 
 ```bash
-python -m build                      # produces dist/agent_seal-0.1.0-*.whl + .tar.gz
+python -m build                      # produces dist/stepproof-0.1.0-*.whl + .tar.gz
 python -m twine upload dist/*        # needs a free PyPI account + API token
 ```
 
@@ -45,7 +45,7 @@ Verified already on 2026-07-27:
 - [ ] Free PyPI account + API token (`pypi.org/manage/account/token`) — **Rushi does this
       part.** Claude does not create accounts or handle credentials; hand over the token
       via `twine` on your own machine, or run the upload yourself.
-- [ ] `pip install agent-seal` in a fresh venv, run the smoke snippet from the README
+- [ ] `pip install stepproof` in a fresh venv, run the smoke snippet from the README
 
 ## 3. The post
 

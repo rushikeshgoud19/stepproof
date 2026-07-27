@@ -2,7 +2,7 @@
 
 Same two modes as the other adapters — record everything, verify what you name:
 
-    from agent_seal.adapters.openai_agents import seal_tools
+    from stepproof.adapters.openai_agents import seal_tools
     tools = seal_tools(tools, proves={"write_report": "file exists at {path}"})
 
 The SDK's `function_tool` keeps the underlying callable on `.on_invoke_tool` for hosted
@@ -28,7 +28,7 @@ def _find_attr(tool: Any) -> str:
     raise TypeError(
         f"{getattr(tool, 'name', tool)!r} exposes no callable in {_ATTRS}. If your SDK "
         f"version stores it elsewhere, seal the function directly:\n"
-        f"    from agent_seal import verified\n"
+        f"    from stepproof import verified\n"
         f"    @verified(proves=...)\n"
         f"    def my_tool(...): ...")
 

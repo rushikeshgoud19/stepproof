@@ -14,9 +14,9 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agent_seal import (Ledger, VerificationError, command_output, dir_has_files,
+from stepproof import (Ledger, VerificationError, command_output, dir_has_files,
                         file_newer_than, json_field, set_ledger, verified)
-from agent_seal.verify import _resolve
+from stepproof.verify import _resolve
 
 FAILS = []
 
@@ -47,7 +47,7 @@ def test_freshness():
     check("missing file fails", file_newer_than(os.path.join(d, "nope"), 300)[0], False)
 
     # the whole point: existence is not freshness
-    from agent_seal import file_exists
+    from stepproof import file_exists
     check("file_exists would have PASSED the stale file", file_exists(stale)[0], True)
 
 

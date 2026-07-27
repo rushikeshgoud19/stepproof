@@ -13,10 +13,10 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agent_seal import Ledger, set_ledger
-from agent_seal.adapters import crewai as crew_ad
-from agent_seal.adapters import langchain as lc_ad
-from agent_seal.adapters import openai_agents as oai_ad
+from stepproof import Ledger, set_ledger
+from stepproof.adapters import crewai as crew_ad
+from stepproof.adapters import langchain as lc_ad
+from stepproof.adapters import openai_agents as oai_ad
 
 FAILS = []
 

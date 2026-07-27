@@ -46,7 +46,7 @@ class Seal:
 class Ledger:
     """Append-only JSONL ledger. Thread-safe; one process owns one file."""
 
-    def __init__(self, path: str = ".agent_seal/ledger.jsonl"):
+    def __init__(self, path: str = ".stepproof/ledger.jsonl"):
         self.path = path
         self._lock = threading.Lock()
         parent = os.path.dirname(os.path.abspath(path))

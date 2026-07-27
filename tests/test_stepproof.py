@@ -1,4 +1,4 @@
-"""Tests for agent-seal. Run: python tests/test_agent_seal.py
+"""Tests for stepproof. Run: python tests/test_stepproof.py
 
 No pytest dependency — a verification library that is annoying to verify would be a poor
 advertisement for itself.
@@ -10,7 +10,7 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agent_seal import (Ledger, VerificationError, explain, is_narration, report,
+from stepproof import (Ledger, VerificationError, explain, is_narration, report,
                         set_ledger, verified)
 
 FAILS = []

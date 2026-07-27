@@ -1,6 +1,6 @@
 """CrewAI adapter.
 
-    from agent_seal.adapters.crewai import seal_tools
+    from stepproof.adapters.crewai import seal_tools
     agent.tools = seal_tools(agent.tools, proves={"Write File": "file exists at {path}"})
 
 CrewAI tools carry their callable on `.func` (`@tool`-decorated functions) or expose a

@@ -73,10 +73,10 @@ appear.
 
 ## What I built
 
-[`agent-seal`](https://github.com/rushikeshgoud19/agent-seal). One decorator:
+[`stepproof`](https://github.com/rushikeshgoud19/stepproof). One decorator:
 
 ```python
-from agent_seal import verified
+from stepproof import verified
 
 @verified(proves="file {path} contains DONE")
 def write_report(path):
@@ -92,7 +92,7 @@ Same demo, three verdicts on one run:
 ```
 output-level judge : PASS   <- what output-only evaluation sees
 reality            : FAIL   <- the file does not exist
-agent-seal         : FAIL   <- caught at the step, with evidence
+stepproof         : FAIL   <- caught at the step, with evidence
 ```
 
 Three things in it are worth more than the decorator.
@@ -136,7 +136,7 @@ isn't worth much.
 ## Using it on an agent you already have
 
 ```python
-from agent_seal.adapters.langchain import seal_tools   # or .openai_agents, or .crewai
+from stepproof.adapters.langchain import seal_tools   # or .openai_agents, or .crewai
 
 tools = seal_tools(tools)     # record every call
 ```
@@ -165,7 +165,7 @@ accident.
 
 ---
 
-**Repo:** https://github.com/rushikeshgoud19/agent-seal
+**Repo:** https://github.com/rushikeshgoud19/stepproof
 **The demo:** `examples/langchain_fake_success.py` — run it and watch the judge pass an
 action that never happened.
 

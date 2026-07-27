@@ -15,7 +15,7 @@ build/
 !/LICENSE
 !/README.md
 !/pyproject.toml
-!/agent_seal/
+!/stepproof/
 !/tests/
 !/examples/
 !/docs/

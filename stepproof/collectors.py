@@ -56,7 +56,7 @@ def file_contains(path: str, needle: str) -> tuple[bool, str]:
 def http_ok(url: str, expect_status: int = 200, contains: str = None) -> tuple[bool, str]:
     """Confirm an endpoint really responded — 'I posted the webhook' is checkable."""
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "agent-seal/0.1"})
+        req = urllib.request.Request(url, headers={"User-Agent": "stepproof/0.1"})
         with urllib.request.urlopen(req, timeout=15) as r:
             status, body = r.status, r.read(4096).decode("utf-8", "replace")
     except urllib.error.HTTPError as e:

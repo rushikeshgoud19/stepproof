@@ -12,9 +12,9 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agent_seal import (Ledger, VerificationError, file_absent, file_contains, file_exists,
+from stepproof import (Ledger, VerificationError, file_absent, file_contains, file_exists,
                         output_contains, set_ledger, sqlite_row_exists, verified)
-from agent_seal.verify import _resolve
+from stepproof.verify import _resolve
 
 FAILS = []
 
@@ -117,7 +117,7 @@ class FakeTool:
 def test_adapter_records_without_claiming_verified():
     print("\n-- adapter: record mode --")
     led = Ledger(tmpfile("l1.jsonl")); set_ledger(led)
-    from agent_seal.adapters.langchain import seal_tools
+    from stepproof.adapters.langchain import seal_tools
 
     def do_nothing(path: str) -> str:
         return "exit 0. all good"
@@ -136,7 +136,7 @@ def test_adapter_records_without_claiming_verified():
 def test_adapter_verifies_named_tool():
     print("\n-- adapter: verify mode --")
     led = Ledger(tmpfile("l2.jsonl")); set_ledger(led)
-    from agent_seal.adapters.langchain import seal_tools
+    from stepproof.adapters.langchain import seal_tools
 
     target = tmpfile("out.txt")
 
@@ -157,7 +157,7 @@ def test_adapter_verifies_named_tool():
 def test_adapter_seals_exceptions():
     print("\n-- adapter: a raising tool is still sealed --")
     led = Ledger(tmpfile("l3.jsonl")); set_ledger(led)
-    from agent_seal.adapters.langchain import seal_tools
+    from stepproof.adapters.langchain import seal_tools
 
     def boom(x: str) -> str:
         raise RuntimeError("network down")
@@ -176,7 +176,7 @@ def test_adapter_seals_exceptions():
 def test_adapter_leaves_original_untouched():
     print("\n-- adapter: original tool not mutated --")
     led = Ledger(tmpfile("l4.jsonl")); set_ledger(led)
-    from agent_seal.adapters.langchain import seal_tools
+    from stepproof.adapters.langchain import seal_tools
 
     def f(x: str) -> str:
         return "ok"

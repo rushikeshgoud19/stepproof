@@ -1,17 +1,17 @@
-# agent-seal
+# stepproof
 
-[![tests](https://github.com/rushikeshgoud19/agent-seal/actions/workflows/tests.yml/badge.svg)](https://github.com/rushikeshgoud19/agent-seal/actions/workflows/tests.yml)
-[![python](https://img.shields.io/badge/python-3.10%2B-blue)](https://pypi.org/project/agent-seal/)
+[![tests](https://github.com/rushikeshgoud19/stepproof/actions/workflows/tests.yml/badge.svg)](https://github.com/rushikeshgoud19/stepproof/actions/workflows/tests.yml)
+[![python](https://img.shields.io/badge/python-3.10%2B-blue)](https://pypi.org/project/stepproof/)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![dependencies](https://img.shields.io/badge/dependencies-none-brightgreen)](pyproject.toml)
 
 **Prove what your agent actually did.**
 
-Every observability tool for agents answers *"was the output good?"*. `agent-seal` answers
+Every observability tool for agents answers *"was the output good?"*. `stepproof` answers
 *"did the action actually happen?"*
 
 ```python
-from agent_seal import verified
+from stepproof import verified
 
 @verified(proves="file {path} contains DONE")
 def write_report(path):
@@ -29,12 +29,12 @@ three verdicts on the same run:
 ```
 output-level judge : PASS   <- what output-only evaluation sees
 reality            : FAIL   <- the file does not exist
-agent-seal         : FAIL   <- caught at the step, with evidence
+stepproof         : FAIL   <- caught at the step, with evidence
 ```
 
 The agent said:
 
-> I succeeded in creating the file at `…/agent_seal_demo.txt` containing the word **DONE**.
+> I succeeded in creating the file at `…/stepproof_demo.txt` containing the word **DONE**.
 
 The file was never created.
 
@@ -99,14 +99,14 @@ this*, not just what happened.
 ## Seal a whole agent, not one function
 
 ```python
-from agent_seal.adapters.langchain import seal_tools       # or .openai_agents, or .crewai
+from stepproof.adapters.langchain import seal_tools       # or .openai_agents, or .crewai
 
 tools = seal_tools(tools)                                        # record everything
 tools = seal_tools(tools, proves={"run_shell": "file exists at {path}"})   # and verify
 ```
 
 Three adapters, one API: **LangChain**, **OpenAI Agents SDK**, **CrewAI**. Each imports its
-framework lazily, so `import agent_seal` never requires any of them.
+framework lazily, so `import stepproof` never requires any of them.
 
 In CrewAI especially, pass `actor=` when sealing per agent — crews delegate, the same tool
 gets invoked by several agents, and *who authorized this* is the audit question that becomes
@@ -157,7 +157,7 @@ detector, so a lazy checker can't rubber-stamp itself.
 
 ```bash
 pip install -e .
-python tests/test_agent_seal.py                  # 28 checks — core, ledger, tamper
+python tests/test_stepproof.py                  # 28 checks — core, ledger, tamper
 python tests/test_collectors_and_adapter.py      # 37 checks — collectors, clause grammar
 python tests/test_adapters.py                    # 42 checks — all three adapters
 python tests/test_collectors_extra.py            # 31 checks — freshness, dir, json, shell
@@ -173,7 +173,7 @@ Early but real. Built and tested: the decorator, hash-chained ledger with tamper
 narration detector, evidence collectors (file / freshness / dir / json / http / sqlite /
 shell), the clause grammar, adapters for LangChain / OpenAI Agents SDK / CrewAI, and the
 audit report. **138 checks pass**, and
-`import agent_seal` pulls in zero third-party modules.
+`import stepproof` pulls in zero third-party modules.
 
 Next: PyPI, and collectors for whatever people actually verify.
 
