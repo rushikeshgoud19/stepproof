@@ -182,8 +182,15 @@ audit report. **138 checks pass**, and
 
 Next: PyPI, and collectors for whatever people actually verify.
 
-Extracted from a personal AI assistant whose verification layer exists because it once
-reported a task as scheduled that it had never scheduled.
+This library exists because an agent I ran in production once reported a task as scheduled
+that it had never scheduled. Everything above is a consequence of that.
+
+## Related work
+
+**[Tribunal](https://github.com/rushikeshgoud19/datahub-tribunal)** — the other half of the
+same instinct. `stepproof` distrusts what an agent says it *did*. Tribunal distrusts what one
+model says is *true*, and makes four argue it out under a judge that scores but does not
+decide.
 
 ## License
 

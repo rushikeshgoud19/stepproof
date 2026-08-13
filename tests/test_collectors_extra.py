@@ -68,7 +68,7 @@ def test_json():
     print("\n-- json_field --")
     d = tmpdir()
     p = os.path.join(d, "cfg.json")
-    json.dump({"server": {"port": 8001, "tls": False}, "name": "mizune"}, open(p, "w"))
+    json.dump({"server": {"port": 8001, "tls": False}, "name": "demo"}, open(p, "w"))
 
     check("nested value matches", json_field(p, "server.port", 8001)[0], True)
     check("nested value differs", json_field(p, "server.port", 9999)[0], False)

@@ -59,7 +59,7 @@ that reads as machine-written undercuts a library about honesty.
       check the output"* — no "Show HN: revolutionary…"
 - [ ] Be around for the first two hours to answer comments. That matters more than the timing.
 
-## Kill criterion (from mizune-million-path.md)
+## Kill criterion
 
 **<100 stars and zero unsolicited users after 10 weeks → the pain is real but you're not the
 one who gets to solve it. Pivot.**
