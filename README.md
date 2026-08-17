@@ -152,6 +152,62 @@ def drain_queue(): ...
 A verifier that returns prose instead of an observation is rejected by the narration
 detector, so a lazy checker can't rubber-stamp itself.
 
+## The step that never ran
+
+`@verified` proves an action took effect. It cannot prove the action **existed** — a
+capability that silently degrades produces no step at all, so there is nothing to verify,
+nothing to raise, and nothing in the ledger. The agent simply reports that there was
+nothing to do.
+
+This shipped, in real code, and ran for months:
+
+```python
+due = getattr(cron_manager, "peek_due_soon", lambda: [])()
+```
+
+`CronManager` has no `peek_due_soon`. Follow the chain again:
+
+| layer | says | and it's telling the truth |
+|---|---|---|
+| the `getattr` | no such attribute | yes |
+| the fallback | `[]` | yes — that is what it returns |
+| the branch | nothing is due | yes — the list really is empty |
+| the agent | "nothing needs attention" | yes — that is what it was handed |
+
+**Nobody lies anywhere in the stack**, and this time not even a step was executed. The gap
+is between *a name resolved* and *something implements it*.
+
+A **seam** closes it. Three roles, all required: a definition declaring the interface, a
+provider implementing it, a consumer using it. One role alone is not a seam.
+
+```python
+from stepproof import seams
+
+seams.declare("cron", "Scheduled task source", methods=("peek_due_soon",))
+seams.provide("cron", CronManager())     # SeamContract: missing ['peek_due_soon']
+due = seams.require("cron").peek_due_soon()
+```
+
+The typo fails at **registration**, not on the tick three months later. `require()` raises
+rather than degrading, because a missing provider is a wiring bug and wiring bugs should be
+loud at the first call. `optional()` exists for capabilities genuinely allowed to be absent
+and says so in its own docstring — reaching for it to silence a wiring error rebuilds the
+bug above.
+
+Print the capability graph at every boot and a provider that quietly disappeared shows up
+as `!!` on the next start, rather than as a feature that mysteriously stopped having
+anything to say:
+
+```
+3 seam(s):
+  OK cron                         <- app.cron        consumers=1
+  OK store                        <- app.sqlite      consumers=2
+  !! search                       <- NOBODY          consumers=1
+```
+
+The three-role rule is borrowed from [deepseek-harness](https://github.com/deepseek-ai/deepseek-harness);
+the implementation is not — it is a dict with rules, and the core stays dependency-free.
+
 ## Install
 
 ```bash
@@ -176,8 +232,8 @@ itself.
 
 Early but real. Built and tested: the decorator, hash-chained ledger with tamper detection,
 narration detector, evidence collectors (file / freshness / dir / json / http / sqlite /
-shell), the clause grammar, adapters for LangChain / OpenAI Agents SDK / CrewAI, and the
-audit report. **138 checks pass**, and
+shell), the clause grammar, adapters for LangChain / OpenAI Agents SDK / CrewAI, capability
+seams, and the audit report. **156 checks pass**, and
 `import stepproof` pulls in zero third-party modules.
 
 Next: PyPI, and collectors for whatever people actually verify.

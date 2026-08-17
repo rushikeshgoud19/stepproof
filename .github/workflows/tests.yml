@@ -44,6 +44,9 @@ jobs:
       - name: Freshness, dir, json and shell collectors
         run: python tests/test_collectors_extra.py
 
+      - name: Capability seams
+        run: python tests/test_seams.py
+
   build:
     runs-on: ubuntu-latest
     steps:

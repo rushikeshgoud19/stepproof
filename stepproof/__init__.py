@@ -22,6 +22,7 @@ from .collectors import (command_output, dir_has_files, file_absent, file_contai
                          output_contains, sqlite_row_exists)
 from .ledger import GENESIS, Ledger, Seal
 from .narration import explain, is_narration
+from .seams import Seam, SeamContract, SeamError, SeamMissing, Seams
 from .verify import VerificationError, get_ledger, report, set_ledger, verified
 
 __version__ = "0.1.0"
@@ -29,6 +30,7 @@ __all__ = [
     "verified", "VerificationError", "report",
     "Ledger", "Seal", "GENESIS", "get_ledger", "set_ledger",
     "is_narration", "explain",
+    "Seams", "Seam", "SeamError", "SeamMissing", "SeamContract",
     "file_exists", "file_absent", "file_contains", "file_newer_than", "http_ok",
     "sqlite_row_exists", "dir_has_files", "json_field", "command_output", "output_contains",
 ]
